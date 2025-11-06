@@ -13,6 +13,10 @@ from pathlib import Path
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from anthropic import Anthropic
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize Anthropic client
 # Note: This requires ANTHROPIC_API_KEY environment variable
@@ -31,7 +35,7 @@ async def run_weather_query(query: str):
     
     # Set up server parameters - we'll run the Python server script
     server_params = StdioServerParameters(
-        command="python",
+        command=sys.executable,
         args=[str(server_script)],
         env=None  # Inherits current environment (including API keys)
     )
