@@ -83,35 +83,39 @@ async def run_weather_query(query: str):
             
             # Process Claude's response
             while response.stop_reason == "tool_use":
-                # Claude wants to use a tool
-                tool_use = next(block for block in response.content if block.type == "tool_use")
-                
-                print(f"🔧 Calling tool: {tool_use.name}")
-                print(f"   Parameters: {tool_use.input}\n")
-                
-                # Call the tool via MCP
-                result = await session.call_tool(tool_use.name, tool_use.input)
+                # Claude wants to use one or more tools
+                tool_uses = [block for block in response.content if block.type == "tool_use"]
 
-                # Convert MCP result to string for Anthropic
-                tool_result_content = ""
-                for content_item in result.content:
-                    if hasattr(content_item, 'text'):
-                        tool_result_content += content_item.text
+                # Call all tools and collect results
+                tool_results = []
+                for tool_use in tool_uses:
+                    print(f"🔧 Calling tool: {tool_use.name}")
+                    print(f"   Parameters: {tool_use.input}\n")
 
-                # Add tool result to messages
+                    # Call the tool via MCP
+                    result = await session.call_tool(tool_use.name, tool_use.input)
+
+                    # Convert MCP result to string for Anthropic
+                    tool_result_content = ""
+                    for content_item in result.content:
+                        if hasattr(content_item, 'text'):
+                            tool_result_content += content_item.text
+
+                    # Add to results list
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": tool_use.id,
+                        "content": tool_result_content
+                    })
+
+                # Add all tool results to messages
                 messages.append({
                     "role": "assistant",
                     "content": response.content
                 })
                 messages.append({
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": tool_use.id,
-                            "content": tool_result_content
-                        }
-                    ]
+                    "content": tool_results
                 })
                 
                 # Continue the conversation
