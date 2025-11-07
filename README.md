@@ -1,21 +1,22 @@
-# Weather MCP Server 🌤️
+# Weather & Crypto MCP Server 🌤️ ₿
 
-A simple Model Context Protocol (MCP) server that provides weather data from OpenWeatherMap API. This project demonstrates how to build an MCP server that enables AI assistants like Claude to answer weather-related questions.
+A Model Context Protocol (MCP) server that provides weather data from OpenWeatherMap API and cryptocurrency prices from CoinGecko API. This project demonstrates how to build an MCP server that enables AI assistants like Claude to answer weather and crypto-related questions.
 
 ## 🎯 What This Does
 
-This project creates a bridge between Claude and real-world weather data:
+This project creates a bridge between Claude and real-world data:
 - You ask: "What's the weather in Paris?"
-- Claude uses the MCP server to fetch real-time weather data
-- You get a natural language answer with current conditions
+- Or: "What's the Bitcoin price?"
+- Claude uses the MCP server to fetch real-time data
+- You get a natural language answer with current information
 
 ## 📁 Project Structure
 
 ```
-weather-mcp/
+weather-crypto-mcp/
 ├── src/
 │   ├── __init__.py        # Package initialization
-│   ├── server.py          # MCP server (provides weather tools)
+│   ├── server.py          # MCP server (provides weather & crypto tools)
 │   └── client.py          # Terminal client (asks questions)
 ├── requirements.txt       # Python dependencies
 ├── .env.example          # Environment variables template
@@ -83,9 +84,10 @@ python src/client.py
 
 Then ask questions like:
 - "What's the weather in London?"
+- "What's the Bitcoin price today?"
 - "Will it rain in Tokyo?"
+- "How much is Ethereum worth?"
 - "Give me the forecast for Paris"
-- "How's the weather in New York right now?"
 
 ### Single Query Mode
 
@@ -100,9 +102,9 @@ python src/client.py "What's the weather in Berlin?"
 ### Architecture
 
 ```
-User Question → Client → MCP Server → OpenWeatherMap API
+User Question → Client → MCP Server → OpenWeatherMap / CoinGecko APIs
                   ↓           ↓              ↓
-              Claude    Weather Tools    Weather Data
+              Claude    4 Tools         Weather & Crypto Data
                   ↓           ↓              ↓
             Natural Language Answer ← Formatted Data
 ```
@@ -110,11 +112,13 @@ User Question → Client → MCP Server → OpenWeatherMap API
 ### Components Explained
 
 **1. MCP Server (server.py)**
-- Exposes two tools to Claude:
+- Exposes four tools to Claude:
   - `get_current_weather`: Current conditions for a city
   - `get_weather_forecast`: 5-day forecast for a city
-- Fetches data from OpenWeatherMap API
-- Returns structured weather information
+  - `get_btc_price`: Current Bitcoin price in USD
+  - `get_eth_price`: Current Ethereum price in USD
+- Fetches data from OpenWeatherMap and CoinGecko APIs
+- Returns structured weather and crypto information
 
 **2. Terminal Client (client.py)**
 - Takes your natural language question
@@ -131,7 +135,9 @@ User Question → Client → MCP Server → OpenWeatherMap API
 
 ## 📊 Available Tools
 
-### get_current_weather
+### Weather Tools
+
+**get_current_weather**
 Returns current weather conditions including:
 - Temperature (actual and feels-like)
 - Weather conditions (clear, cloudy, rainy, etc.)
@@ -139,12 +145,26 @@ Returns current weather conditions including:
 - Wind speed
 - Cloudiness percentage
 
-### get_weather_forecast
+**get_weather_forecast**
 Returns 5-day forecast with:
 - Predictions every 3 hours
 - Temperature forecasts
 - Expected weather conditions
 - Timestamps for each forecast
+
+### Cryptocurrency Tools
+
+**get_btc_price**
+Returns current Bitcoin (BTC) data:
+- Current price in USD
+- 24-hour price change percentage
+- Market cap
+
+**get_eth_price**
+Returns current Ethereum (ETH) data:
+- Current price in USD
+- 24-hour price change percentage
+- Market cap
 
 ## 🛠️ Troubleshooting
 
@@ -171,6 +191,7 @@ Returns 5-day forecast with:
 
 - **MCP Documentation**: https://modelcontextprotocol.io/
 - **OpenWeatherMap API**: https://openweathermap.org/api
+- **CoinGecko API**: https://www.coingecko.com/en/api
 - **Anthropic API**: https://docs.anthropic.com/
 
 ## 🎓 Key Concepts
@@ -205,6 +226,7 @@ This is a learning project - feel free to use and modify as needed!
 
 This is an educational project. Feel free to:
 - Add more weather features
+- Add more cryptocurrencies (Solana, Cardano, etc.)
 - Support different APIs
 - Improve error handling
 - Add tests

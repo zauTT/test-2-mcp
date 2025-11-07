@@ -2,7 +2,7 @@
 """
 Weather MCP Client
 ==================
-Terminal client for asking weather questions.
+Terminal client for asking weather/crypto questions.
 This connects to the MCP server and uses Claude to interpret natural language queries.
 """
 
@@ -28,7 +28,7 @@ async def run_weather_query(query: str):
     Process a weather query using the MCP server and Claude.
     
     Args:
-        query: Natural language weather question from the user
+        query: Natural language weather/crypto question from the user
     """
     # Get the path to the server script
     server_script = Path(__file__).parent / "server.py"
@@ -91,7 +91,13 @@ async def run_weather_query(query: str):
                 
                 # Call the tool via MCP
                 result = await session.call_tool(tool_use.name, tool_use.input)
-                
+
+                # Convert MCP result to string for Anthropic
+                tool_result_content = ""
+                for content_item in result.content:
+                    if hasattr(content_item, 'text'):
+                        tool_result_content += content_item.text
+
                 # Add tool result to messages
                 messages.append({
                     "role": "assistant",
@@ -103,7 +109,7 @@ async def run_weather_query(query: str):
                         {
                             "type": "tool_result",
                             "tool_use_id": tool_use.id,
-                            "content": result.content
+                            "content": tool_result_content
                         }
                     ]
                 })
@@ -134,10 +140,11 @@ async def interactive_mode():
     Run an interactive session where user can ask multiple questions.
     """
     print("\n" + "=" * 60)
-    print("🌤️  WEATHER MCP CLIENT - Interactive Mode")
+    print("🌤️ - ₿ WEATHER/CRYPTO MCP CLIENT - Interactive Mode")
     print("=" * 60)
     print("\nAsk weather questions like:")
     print("  • What's the weather in London?")
+    print("  • What's Bitcoin price today?")
     print("  • Will it rain in Tokyo tomorrow?")
     print("  • Give me the forecast for Paris")
     print("\nType 'quit' or 'exit' to stop.\n")
