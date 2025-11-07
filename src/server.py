@@ -31,6 +31,37 @@ BASE_URL = "https://api.openweathermap.org/data/2.5"
 # Create MCP server instance
 app = Server("weather-crypto-server")
 
+# Cryptocurrency symbol to CoinGecko ID mappings
+CRYPTO_IDS = {
+    # Top 5 by market cap
+    "btc": "bitcoin",
+    "eth": "ethereum",
+    "usdt": "tether",           # Stablecoin
+    "bnb": "binancecoin",       # Binance Coin
+    "sol": "solana",
+
+    # Major altcoins
+    "xrp": "ripple",
+    "usdc": "usd-coin",         # Stablecoin
+    "ada": "cardano",
+    "doge": "dogecoin",
+    "trx": "tron",
+    "avax": "avalanche-2",      # Note: has "-2" suffix!
+    "link": "chainlink",
+    "dot": "polkadot",
+    "matic": "matic-network",   # Polygon
+
+    # Popular meme/trending coins
+    "shib": "shiba-inu",
+    "pepe": "pepe",
+    "wif": "dogwifcoin",
+
+    # DeFi favorites
+    "uni": "uniswap",
+    "aave": "aave",
+    "crv": "curve-dao-token",
+}
+
 
 async def fetch_weather(city: str) -> dict[str, Any]:
     """
@@ -116,21 +147,17 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
-            name="get_btc_price",
-            description="Get current Bitcoin (BTC) price in USD. Returns price, 24hr change, and market cap.",
+            name="get_crypto_price",
+            description="Get current cryptocurrency price in USD. Supports BTC, ETH, SOL, DOGE and many more. Returns price, 24hr change, and market cap.",
             inputSchema={
                 "type": "object",
-                "properties": {},
-                "required": []
-            }
-        ),
-        Tool(
-            name="get_eth_price",
-            description="Get current Ethereum (ETH) price in USD. Returns price, 24hr change, and market cap.",
-            inputSchema={
-                "type": "object",
-                "properties": {},
-                "required": []
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Cryptocurrency symbol (e.g., 'btc', 'eth', 'sol') or full name (e.g., 'bitcoin', 'ethereum')"
+                    }
+                },
+                "required": ["symbol"]
             }
         )
     ]
@@ -140,20 +167,13 @@ async def fetch_crypto_prices(symbol: str) -> dict[str, Any]:
     Fetch cryptocurrency price from CoinGecko API
 
     Args:
-        symbol: cryptocurrency symbol (btc or eth)
+        symbol: cryptocurrency symbol (e.g., 'btc', 'eth', 'sol') or CoinGecko ID
 
     Returns:
         Dictionary containing price data
     """
-    # Map symbols to CoinGecko IDs
-    crypto_ids = {
-        "btc": "bitcoin",
-        "eth": "ethereum",
-    }
-
-    crypto_id = crypto_ids.get(symbol.lower())
-    if not crypto_id:
-        raise ValueError(f"Unsupported cryptocurrency: {symbol}")
+    # Translate symbol to CoinGecko ID (with fallback to use symbol as-is)
+    crypto_id = CRYPTO_IDS.get(symbol.lower(), symbol.lower())
 
     async with httpx.AsyncClient() as client:
         response = await client.get(
@@ -228,35 +248,25 @@ Cloudiness: {data['clouds']['all']}%
             
             return [TextContent(type="text", text=result)]
 
-        elif name == "get_btc_price":
-            # Fetch BTC price
-            data = await fetch_crypto_prices("btc")
+        elif name == "get_crypto_price":
+            symbol = arguments.get("symbol")
+            if not symbol:
+                return [TextContent(type="text", text="Error: Symbol is required")]
 
-            # Format the response
-            btc_data = data.get("bitcoin", {})
-            price = btc_data.get("usd", "N/A")
-            change_24h = btc_data.get("usd_24h_change", "N/A")
-            market_cap = btc_data.get("usd_market_cap", "N/A")
+            # Translate symbol to CoinGecko ID
+            crypto_id = CRYPTO_IDS.get(symbol.lower(), symbol.lower())
 
-            result = f"""Bitcoin (BTC) Price:
+            # Fetch price data
+            data = await fetch_crypto_prices(symbol)
 
-Price: ${price:,.2f} USD
-24h Change: {change_24h:+.2f}%
-Market Cap: ${market_cap:,.0f} USD
-"""
-            return [TextContent(type="text", text=result)]
+            # Extract data using crypto_id as key
+            crypto_data = data.get(crypto_id, {})
+            price = crypto_data.get("usd", "N/A")
+            change_24h = crypto_data.get("usd_24h_change", "N/A")
+            market_cap = crypto_data.get("usd_market_cap", "N/A")
 
-        elif name == "get_eth_price":
-            # Fetch ETH price
-            data = await fetch_crypto_prices("eth")
-
-            # Format the response
-            eth_data = data.get("ethereum", {})
-            price = eth_data.get("usd", "N/A")
-            change_24h = eth_data.get("usd_24h_change", "N/A")
-            market_cap = eth_data.get("usd_market_cap", "N/A")
-
-            result = f"""Ethereum (ETH) Price:
+            # Format response
+            result = f"""{symbol.upper()} Price:
 
 Price: ${price:,.2f} USD
 24h Change: {change_24h:+.2f}%
