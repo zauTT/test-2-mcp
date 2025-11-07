@@ -7,8 +7,10 @@ A Model Context Protocol (MCP) server that provides weather data from OpenWeathe
 This project creates a bridge between Claude and real-world data:
 - You ask: "What's the weather in Paris?"
 - Or: "What's the Bitcoin price?"
+- Or even: "Show me weather in London and Tokyo, plus Ethereum price"
 - Claude uses the MCP server to fetch real-time data
 - You get a natural language answer with current information
+- Supports 20+ cryptocurrencies and any city worldwide
 
 ## 📁 Project Structure
 
@@ -85,8 +87,10 @@ python src/client.py
 Then ask questions like:
 - "What's the weather in London?"
 - "What's the Bitcoin price today?"
+- "Show me Solana and Dogecoin prices"
+- "How's the weather in London and Paris?"
+- "What's the weather in Tokyo and Bitcoin price?"
 - "Will it rain in Tokyo?"
-- "How much is Ethereum worth?"
 - "Give me the forecast for Paris"
 
 ### Single Query Mode
@@ -104,7 +108,7 @@ python src/client.py "What's the weather in Berlin?"
 ```
 User Question → Client → MCP Server → OpenWeatherMap / CoinGecko APIs
                   ↓           ↓              ↓
-              Claude    4 Tools         Weather & Crypto Data
+              Claude    3 Tools         Weather & Crypto Data
                   ↓           ↓              ↓
             Natural Language Answer ← Formatted Data
 ```
@@ -112,13 +116,13 @@ User Question → Client → MCP Server → OpenWeatherMap / CoinGecko APIs
 ### Components Explained
 
 **1. MCP Server (server.py)**
-- Exposes four tools to Claude:
+- Exposes three tools to Claude:
   - `get_current_weather`: Current conditions for a city
   - `get_weather_forecast`: 5-day forecast for a city
-  - `get_btc_price`: Current Bitcoin price in USD
-  - `get_eth_price`: Current Ethereum price in USD
+  - `get_crypto_price`: Dynamic crypto price tool supporting 20+ cryptocurrencies
 - Fetches data from OpenWeatherMap and CoinGecko APIs
 - Returns structured weather and crypto information
+- Supports multiple simultaneous tool calls (e.g., "weather in London and Paris")
 
 **2. Terminal Client (client.py)**
 - Takes your natural language question
@@ -154,17 +158,24 @@ Returns 5-day forecast with:
 
 ### Cryptocurrency Tools
 
-**get_btc_price**
-Returns current Bitcoin (BTC) data:
-- Current price in USD
+**get_crypto_price**
+Dynamic tool that supports 20+ cryptocurrencies:
+- Accepts symbol (btc, eth, sol) or CoinGecko ID (bitcoin, ethereum)
+- Returns current price in USD
 - 24-hour price change percentage
 - Market cap
 
-**get_eth_price**
-Returns current Ethereum (ETH) data:
-- Current price in USD
-- 24-hour price change percentage
-- Market cap
+**Supported Cryptocurrencies:**
+- **Top Coins**: BTC, ETH, USDT, BNB, SOL
+- **Major Altcoins**: XRP, USDC, ADA, DOGE, TRX, AVAX, LINK, DOT, MATIC
+- **Meme Coins**: SHIB, PEPE, WIF
+- **DeFi**: UNI, AAVE, CRV
+- **Any CoinGecko coin**: Pass the CoinGecko ID directly for unlisted coins
+
+**Examples:**
+- "What's Solana price?" (uses symbol: sol → solana)
+- "Show me Bitcoin and Ethereum" (multiple coins at once)
+- "arbitrum price" (passes through to CoinGecko)
 
 ## 🛠️ Troubleshooting
 
@@ -225,10 +236,23 @@ This is a learning project - feel free to use and modify as needed!
 ## 🤝 Contributing
 
 This is an educational project. Feel free to:
-- Add more weather features
-- Add more cryptocurrencies (Solana, Cardano, etc.)
-- Support different APIs
+- Add more weather features (UV index, air quality, etc.)
+- Add more cryptocurrency symbols to CRYPTO_IDS dictionary
+- Support different APIs (stocks, news, forex, etc.)
 - Improve error handling
 - Add tests
+- Add caching for API responses
+
+## 📋 Changelog
+
+**v2.0.0** (Current)
+- Replaced individual crypto tools with dynamic `get_crypto_price(symbol)` tool
+- Added support for 20+ cryptocurrencies with symbol shortcuts
+- Fixed bug: now handles multiple simultaneous tool calls
+- Examples: "weather in London and Paris", "BTC and ETH prices"
+
+**v1.0.0**
+- Initial release with weather and basic crypto support
+- 4 tools: weather, forecast, BTC price, ETH price
 
 Happy coding! 🚀
