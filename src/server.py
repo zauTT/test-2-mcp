@@ -219,13 +219,13 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             
             result = f"""Current Weather in {data['name']}, {data['sys']['country']}:
             
-Temperature: {main['temp']}°C (feels like {main['feels_like']}°C)
-Conditions: {weather['main']} - {weather['description']}
-Humidity: {main['humidity']}%
-Pressure: {main['pressure']} hPa
-Wind Speed: {wind['speed']} m/s
-Cloudiness: {data['clouds']['all']}%
-"""
+            Temperature: {main['temp']}°C (feels like {main['feels_like']}°C)
+            Conditions: {weather['main']} - {weather['description']}
+            Humidity: {main['humidity']}%
+            Pressure: {main['pressure']} hPa
+            Wind Speed: {wind['speed']} m/s
+            Cloudiness: {data['clouds']['all']}%
+            """
             return [TextContent(type="text", text=result)]
         
         elif name == "get_weather_forecast":
@@ -268,10 +268,10 @@ Cloudiness: {data['clouds']['all']}%
             # Format response
             result = f"""{symbol.upper()} Price:
 
-Price: ${price:,.2f} USD
-24h Change: {change_24h:+.2f}%
-Market Cap: ${market_cap:,.0f} USD
-"""
+            Price: ${price:,.2f} USD
+            24h Change: {change_24h:+.2f}%
+            Market Cap: ${market_cap:,.0f} USD
+            """
             return [TextContent(type="text", text=result)]
 
         else:
