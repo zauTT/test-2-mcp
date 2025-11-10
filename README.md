@@ -1,16 +1,18 @@
-# Weather & Crypto MCP Server 🌤️ ₿
+# Weather, Crypto & Currency MCP Server 🌤️ ₿ 💱
 
-A Model Context Protocol (MCP) server that provides weather data from OpenWeatherMap API and cryptocurrency prices from CoinGecko API. This project demonstrates how to build an MCP server that enables AI assistants like Claude to answer weather and crypto-related questions.
+A Model Context Protocol (MCP) server that provides weather data from OpenWeatherMap API, cryptocurrency prices from CoinGecko API, and currency exchange rates from ExchangeRate-API. This project demonstrates how to build an MCP server that enables AI assistants like Claude to answer weather, crypto, and currency-related questions.
 
 ## 🎯 What This Does
 
 This project creates a bridge between Claude and real-world data:
 - You ask: "What's the weather in Paris?"
 - Or: "What's the Bitcoin price?"
+- Or: "Convert 100 USD to EUR"
+- Or: "What's the exchange rate between GBP and JPY?"
 - Or even: "Show me weather in London and Tokyo, plus Ethereum price"
 - Claude uses the MCP server to fetch real-time data
 - You get a natural language answer with current information
-- Supports 20+ cryptocurrencies and any city worldwide
+- Supports 20+ cryptocurrencies, any city worldwide, and 160+ currencies
 
 ## 📁 Project Structure
 
@@ -18,7 +20,7 @@ This project creates a bridge between Claude and real-world data:
 weather-crypto-mcp/
 ├── src/
 │   ├── __init__.py        # Package initialization
-│   ├── server.py          # MCP server (provides weather & crypto tools)
+│   ├── server.py          # MCP server (provides weather, crypto & currency tools)
 │   └── client.py          # Terminal client (asks questions)
 ├── requirements.txt       # Python dependencies
 ├── .env.example          # Environment variables template
@@ -87,6 +89,8 @@ python src/client.py
 Then ask questions like:
 - "What's the weather in London?"
 - "What's the Bitcoin price today?"
+- "Convert 100 USD to EUR"
+- "What's the exchange rate from GBP to JPY?"
 - "Show me Solana and Dogecoin prices"
 - "How's the weather in London and Paris?"
 - "What's the weather in Tokyo and Bitcoin price?"
@@ -106,9 +110,9 @@ python src/client.py "What's the weather in Berlin?"
 ### Architecture
 
 ```
-User Question → Client → MCP Server → OpenWeatherMap / CoinGecko APIs
+User Question → Client → MCP Server → OpenWeatherMap / CoinGecko / ExchangeRate-API
                   ↓           ↓              ↓
-              Claude    3 Tools         Weather & Crypto Data
+              Claude    4 Tools         Weather, Crypto & Currency Data
                   ↓           ↓              ↓
             Natural Language Answer ← Formatted Data
 ```
@@ -116,12 +120,13 @@ User Question → Client → MCP Server → OpenWeatherMap / CoinGecko APIs
 ### Components Explained
 
 **1. MCP Server (server.py)**
-- Exposes three tools to Claude:
+- Exposes four tools to Claude:
   - `get_current_weather`: Current conditions for a city
   - `get_weather_forecast`: 5-day forecast for a city
   - `get_crypto_price`: Dynamic crypto price tool supporting 20+ cryptocurrencies
-- Fetches data from OpenWeatherMap and CoinGecko APIs
-- Returns structured weather and crypto information
+  - `get_exchange_rate`: Currency exchange rates for 160+ currencies
+- Fetches data from OpenWeatherMap, CoinGecko, and ExchangeRate-API
+- Returns structured weather, crypto, and currency information
 - Supports multiple simultaneous tool calls (e.g., "weather in London and Paris")
 
 **2. Terminal Client (client.py)**
@@ -177,6 +182,30 @@ Dynamic tool that supports 20+ cryptocurrencies:
 - "Show me Bitcoin and Ethereum" (multiple coins at once)
 - "arbitrum price" (passes through to CoinGecko)
 
+### Currency Exchange Tools
+
+**get_exchange_rate**
+Get real-time currency exchange rates between any two currencies:
+- Supports 160+ world currencies (USD, EUR, GBP, JPY, CAD, AUD, etc.)
+- Returns current exchange rate
+- Optional amount parameter for conversions
+- Data from ExchangeRate-API (free, no API key required)
+
+**Supported Currencies:**
+All major world currencies including:
+- **Americas**: USD, CAD, MXN, BRL, ARS
+- **Europe**: EUR, GBP, CHF, SEK, NOK, DKK, PLN
+- **Asia**: JPY, CNY, KRW, INR, SGD, HKD, THB
+- **Oceania**: AUD, NZD
+- **Middle East**: AED, SAR, ILS
+- **Africa**: ZAR, EGP, NGN
+- And 140+ more!
+
+**Examples:**
+- "Convert 100 USD to EUR"
+- "What's the GBP to JPY exchange rate?"
+- "How much is 50 CAD in AUD?"
+
 ## 🛠️ Troubleshooting
 
 ### "OPENWEATHER_API_KEY not found"
@@ -203,6 +232,7 @@ Dynamic tool that supports 20+ cryptocurrencies:
 - **MCP Documentation**: https://modelcontextprotocol.io/
 - **OpenWeatherMap API**: https://openweathermap.org/api
 - **CoinGecko API**: https://www.coingecko.com/en/api
+- **ExchangeRate-API**: https://www.exchangerate-api.com/
 - **Anthropic API**: https://docs.anthropic.com/
 
 ## 🎓 Key Concepts
@@ -238,14 +268,21 @@ This is a learning project - feel free to use and modify as needed!
 This is an educational project. Feel free to:
 - Add more weather features (UV index, air quality, etc.)
 - Add more cryptocurrency symbols to CRYPTO_IDS dictionary
-- Support different APIs (stocks, news, forex, etc.)
+- Support different APIs (stocks, news, etc.)
+- Add historical exchange rate data
 - Improve error handling
 - Add tests
 - Add caching for API responses
 
 ## 📋 Changelog
 
-**v2.0.0** (Current)
+**v3.0.0** (Current)
+- Added currency exchange rate tool `get_exchange_rate`
+- Support for 160+ world currencies (USD, EUR, GBP, JPY, etc.)
+- No API key required for exchange rates (uses ExchangeRate-API)
+- Examples: "Convert 100 USD to EUR", "GBP to JPY rate"
+
+**v2.0.0**
 - Replaced individual crypto tools with dynamic `get_crypto_price(symbol)` tool
 - Added support for 20+ cryptocurrencies with symbol shortcuts
 - Fixed bug: now handles multiple simultaneous tool calls

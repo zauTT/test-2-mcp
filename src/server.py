@@ -159,6 +159,29 @@ async def list_tools() -> list[Tool]:
                 },
                 "required": ["symbol"]
             }
+        ),
+        Tool(
+            name="get_exchange_rate",
+            description="Get currency exchange rate between two currencies. Supports all major world currencies (USD, EUR, GBP, JPY, etc.). Returns the current exchange rate and conversion.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "from_currency": {
+                        "type": "string",
+                        "description": "Source currency code (e.g., 'USD', 'EUR', 'GBP', 'JPY')"
+                    },
+                    "to_currency": {
+                        "type": "string",
+                        "description": "Target currency code (e.g., 'USD', 'EUR', 'GBP', 'JPY')"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "description": "Optional amount to convert (defaults to 1)",
+                        "default": 1
+                    }
+                },
+                "required": ["from_currency", "to_currency"]
+            }
         )
     ]
 
@@ -189,6 +212,24 @@ async def fetch_crypto_prices(symbol: str) -> dict[str, Any]:
         response.raise_for_status()
         return response.json()
 
+async def fetch_exchange_rate(from_currency: str, to_currency: str) -> dict[str, Any]:
+    """
+    Fetch currency exchange rate from exchangerate-api.com
+
+    Args:
+        from_currency: Source currency code (e.g., 'USD', 'EUR', 'GBP')
+        to_currency: Target currency code (e.g., 'USD', 'EUR', 'GBP')
+
+    Returns:
+        Dictionary containing exchange rate data
+    """
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"https://api.exchangerate-api.com/v4/latest/{from_currency.upper()}",
+            timeout=10.0
+        )
+        response.raise_for_status()
+        return response.json()
 
 @app.call_tool()
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
@@ -273,6 +314,34 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             Market Cap: ${market_cap:,.0f} USD
             """
             return [TextContent(type="text", text=result)]
+
+        elif name == "get_exchange_rate":
+            from_currency = arguments.get("from_currency")
+            to_currency = arguments.get("to_currency")
+            amount = arguments.get("amount", 1)
+
+            if not from_currency or not to_currency:
+                return [TextContent(type="text", text="Error: Both from_currency and to_currency are required")]
+
+            data = await fetch_exchange_rate(from_currency, to_currency)
+
+            rates = data.get("rates", {})
+            to_currency_upper = to_currency.upper()
+
+            if to_currency_upper not in rates:
+                return [TextContent(type="text", text=f"Error: Currency '{to_currency_upper}' not found")]
+
+            exchange_rate = rates[to_currency_upper]
+            converted_amount = amount * exchange_rate
+
+            result = f"""Exchange Rate - {from_currency.upper()} to {to_currency_upper}:
+
+            Exchange Rate: 1 {from_currency.upper()} = {exchange_rate:.4f} {to_currency_upper}
+            Conversion: {amount:,.2f} {from_currency.upper()} = {converted_amount:,.2f} {to_currency_upper}
+            Last Updated: {data.get('date', 'N/A')}
+            """
+            return [TextContent(type="text", text=result)]
+
 
         else:
             return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
